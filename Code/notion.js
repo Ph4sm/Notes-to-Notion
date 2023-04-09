@@ -10,9 +10,12 @@ async function createPage({ title, content, type }) {
     parent: { database_id: databaseId },
     properties: {
       Name: { title: [{ text: { content: title } }] },
-      Description: { rich_text: [{ text: { content: content } }] },
+      //Description: { rich_text: [{ text: { content: content } }] },
       Type: { select: { name: type }},    
-    }
+    },
+    "children": [{
+      "object": "block", "type": "paragraph", "paragraph": { "rich_text": [{ "type": "text", "text": { "content": content }}]}
+    }]
   });
   console.log(`Page "${title}" has been created!`);
 }

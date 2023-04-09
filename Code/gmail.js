@@ -14,9 +14,13 @@ async function getLastEmailContent() {
   const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
   const res = await gmail.users.messages.list({ userId: 'me', maxResults: 1 });
   const message = await gmail.users.messages.get({ userId: 'me', id: res.data.messages[0].id });
-  
+
   const headers = message.data.payload.headers;
   const subject = headers.find(header => header.name === 'Subject').value;
+
+  // récupérer la date et l'heure du mail
+  const dateHeader = headers.find(header => header.name === 'Date').value;
+  const dateTime = new Date(dateHeader).toISOString().replace(/[-:.]/g, '').slice(0, 15);
 
   // récupérer le contenu du mail
   let body;
@@ -36,15 +40,15 @@ async function getLastEmailContent() {
   const endIndex = content.indexOf('Text transcription', startIndex);
   content = content.substring(startIndex, endIndex).trim();
 
-  // détection du mot clé
-  let type = 'Undefined';
-  const regex = /\$(\S+)/g;
-  const match = content.match(regex);
-  if (match && match.length > 0) {
-    type = match[0].replace('$', '');
+  // détecter le mot clé dans le contenu
+  let type = "Undefined";
+  const keywordRegex = /\$([\w\s]+)\b/;
+  const match = keywordRegex.exec(content);
+  if (match) {
+    type = match[1].trim();
   }
 
-  return { subject, content, type };
+  return { subject, content, type, dateTime };
 }
 
 module.exports = { getLastEmailContent };
