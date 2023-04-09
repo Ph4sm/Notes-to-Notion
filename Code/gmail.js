@@ -1,13 +1,6 @@
 const { google } = require('googleapis');
 const cheerio = require('cheerio');
-const { Client } = require('@notionhq/client');
-const { CLIENT_ID, CLIENT_SECRET, REDIRECT_URL, ACCESS_TOKEN, REFRESH_TOKEN, NOTION_TOKEN, NOTION_DATABASE_ID } = process.env;
-
-// initialiser Notion client
-const notion = new Client({ auth: NOTION_TOKEN });
-
-// stocker la date et l'heure du dernier mail traité
-let lastEmailDateTime = null;
+const { CLIENT_ID, CLIENT_SECRET, REDIRECT_URL, ACCESS_TOKEN, REFRESH_TOKEN } = process.env;
 
 // fonction pour récupérer le contenu du dernier mail
 async function getLastEmailContent() {
@@ -24,19 +17,6 @@ async function getLastEmailContent() {
   
   const headers = message.data.payload.headers;
   const subject = headers.find(header => header.name === 'Subject').value;
-
-  // récupérer la date et l'heure du mail
-  const dateHeader = headers.find(header => header.name === 'Date').value;
-  const emailDateTime = new Date(dateHeader);
-
-  // ne pas traiter le mail si la date et l'heure sont identiques au dernier mail traité
-  if (lastEmailDateTime && emailDateTime.getTime() === lastEmailDateTime.getTime()) {
-    console.log(`Le mail "${subject}" n'a pas été traité car il a la même date et heure que le précédent mail.`);
-    return null;
-  }
-
-  // stocker la date et l'heure de ce mail pour la prochaine vérification
-  lastEmailDateTime = emailDateTime;
 
   // récupérer le contenu du mail
   let body;
@@ -55,8 +35,16 @@ async function getLastEmailContent() {
   const startIndex = content.indexOf('##', content.indexOf('##') + 1) + 2;
   const endIndex = content.indexOf('Text transcription', startIndex);
   content = content.substring(startIndex, endIndex).trim();
-  
-  return { subject, content };
+
+  // détection du mot clé
+  let type = 'Undefined';
+  const regex = /\$(\S+)/g;
+  const match = content.match(regex);
+  if (match && match.length > 0) {
+    type = match[0].replace('$', '');
+  }
+
+  return { subject, content, type };
 }
 
 module.exports = { getLastEmailContent };
