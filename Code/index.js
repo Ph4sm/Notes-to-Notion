@@ -24,3 +24,26 @@ setInterval(async () => {
     console.log('No new mail found.');
   }
 }, 60000);
+
+/*
+async function main() {
+  const lastDate = await getLastDate();
+  console.log(`Last date in database: ${lastDate}`);
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
+*/
+/*
+async function main() {
+  const { subject, content, type, dateTime } = await getLastEmailContent();
+  await createPage({ title: subject, content: content, type: type, dateTime: dateTime }); 
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
+*/
